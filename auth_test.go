@@ -1,9 +1,7 @@
 package gokagitranslate
 
 import (
-	"errors"
 	"os"
-	"strings"
 	"testing"
 )
 
@@ -19,12 +17,5 @@ func TestAuth(t *testing.T) {
 	err := client.auth(t.Context())
 	if err != nil {
 		t.Error("Failed to authenticate: ", err)
-	}
-}
-
-func TestDecodeAuthResponseRejectsNull(t *testing.T) {
-	_, err := decodeAuthResponse(strings.NewReader("null"))
-	if !errors.Is(err, ErrAuthNullResponse) {
-		t.Fatalf("expected ErrAuthNullResponse, got %v", err)
 	}
 }

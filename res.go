@@ -1,6 +1,11 @@
 package gokagitranslate
 
-import "time"
+import (
+	"encoding/json"
+	"errors"
+	"io"
+	"time"
+)
 
 type TranslateResponse struct {
 	Translation      string `json:"translation"`
@@ -75,4 +80,20 @@ type Quota struct {
 	ResetsAt    time.Time `json:"resetsAt"`
 	Exempt      bool      `json:"exempt"`
 	ActiveJobID *string   `json:"activeJobId,omitempty"`
+}
+
+var ErrNullResponse = errors.New("auth failed: empty session response")
+
+func decodeResponse[T comparable](body io.Reader) (T, error) {
+	d := json.NewDecoder(body)
+	var out T
+	var e T
+	if err := d.Decode(&out); err != nil {
+		return out, err
+	}
+	if out == e {
+		return out, ErrNullResponse
+	}
+
+	return out, nil
 }

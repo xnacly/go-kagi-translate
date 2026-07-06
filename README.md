@@ -1,18 +1,22 @@
 # go-kagi-translate
 
 > WARNING: this is a WIP
-
+> 
 > This is an unofficial project using the web api translate.kagi.com, it
 > requires a valid kagi subscription
 
-A full example can be found in [cmd/main.go](./cmd/main.go). 
+A full example in the form of a cli can be found in
+[cmd/main.go](./cmd/main.go). 
 
 Features:
 
 - translate text programmatically via `gokagitranslate.(*Kagi).Translate(ctx, from, to, text string)`
+- detect the language of a text with `gokagitranslate.(*Kagi).Detect(ctx, text string)`
+- inspect quota usage programmatically via `gokagitranslate.(*Kagi).Quota(ctx)`
 - configurable API client via `gokagitranslate.New().{WithClient,WithToken}`
 - uncomplicated opinionated oneshot translation via `gokagitranslate.OneShot(ctx, token, from, to, text string)`
 - netiquette adhering with both project name and contact email in user agent, dont @ me kagi team :)
+- cli tool for experimenting with all features the api provides (translation, quotas, language detection)
 
 ## Reason
 
