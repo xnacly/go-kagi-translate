@@ -24,14 +24,10 @@ func (kt *Kagi) TranslateWithParams(ctx context.Context, params TranslateParams)
 	if err := kt.auth(ctx); err != nil {
 		return TranslateResponse{}, err
 	}
-	return TranslateResponse{}, nil
+	return TranslateResponse{}, ErrNotImplemented
 }
 
 func (kt *Kagi) Translate(ctx context.Context, from, to, text string) (TranslateResponse, error) {
-	if err := kt.auth(ctx); err != nil {
-		return TranslateResponse{}, err
-	}
-
 	params := TranslateParams{
 		Text:                     text,
 		From:                     from,

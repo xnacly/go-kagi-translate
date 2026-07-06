@@ -49,6 +49,13 @@ type TranslateResponse struct {
 	} `json:"definition"`
 }
 
+type DetectResponse struct {
+	DetectedLanguage struct {
+		Iso   string `json:"iso"`
+		Label string `json:"label"`
+	} `json:"detected_language"`
+}
+
 type AuthResponse struct {
 	Token              string    `json:"token"`
 	ID                 string    `json:"id"`
@@ -83,6 +90,7 @@ type Quota struct {
 }
 
 var ErrNullResponse = errors.New("auth failed: empty session response")
+var ErrNotImplemented = errors.New("not implemented")
 
 func decodeResponse[T comparable](body io.Reader) (T, error) {
 	d := json.NewDecoder(body)
