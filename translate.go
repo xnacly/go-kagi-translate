@@ -1,5 +1,7 @@
 package gokagitranslate
 
+import "context"
+
 type TranslateParams struct {
 	Text                     string
 	From                     string
@@ -18,11 +20,18 @@ type TranslateParams struct {
 	Enable_language_features bool
 }
 
-func (kt *Kagi) TranslateWithParams(params TranslateParams) (TranslateResponse, error) {
+func (kt *Kagi) TranslateWithParams(ctx context.Context, params TranslateParams) (TranslateResponse, error) {
+	if err := kt.auth(ctx); err != nil {
+		return TranslateResponse{}, err
+	}
 	return TranslateResponse{}, nil
 }
 
-func (kt *Kagi) Translate(from, to, text string) (TranslateResponse, error) {
+func (kt *Kagi) Translate(ctx context.Context, from, to, text string) (TranslateResponse, error) {
+	if err := kt.auth(ctx); err != nil {
+		return TranslateResponse{}, err
+	}
+
 	params := TranslateParams{
 		Text:                     text,
 		From:                     from,
@@ -35,11 +44,11 @@ func (kt *Kagi) Translate(from, to, text string) (TranslateResponse, error) {
 		Translation_style:        "natural",
 		Context:                  "",
 		Model:                    "standard",
-		Session_token:            kt.session,
+		Session_token:            kt.session.Token,
 		Dictionary_language:      to,
 		Use_definition_context:   false,
 		Enable_language_features: false,
 	}
 
-	return kt.TranslateWithParams(params)
+	return kt.TranslateWithParams(ctx, params)
 }

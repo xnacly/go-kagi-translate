@@ -55,14 +55,9 @@ func main() {
 	}
 	slog.Debug("found KAGI_TOKEN env variable")
 
-	client := gokagitranslate.New().WithClient(&http.Client{}).WithCtx(ctx).WithToken(token)
+	client := gokagitranslate.New().WithClient(&http.Client{}).WithToken(token)
 	slog.Debug("created kagi translate client")
-	if _, err := client.Auth(); err != nil {
-		die(err)
-	}
-	slog.Debug("authenticated to kagi translate")
-
-	output, err := client.Translate(from, to, strings.Join(flag.Args(), " "))
+	output, err := client.Translate(ctx, from, to, strings.Join(flag.Args(), " "))
 	if err != nil {
 		die(err)
 	}
