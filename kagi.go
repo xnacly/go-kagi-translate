@@ -9,7 +9,9 @@ const (
 	translate = "https://translate.kagi.com/api/translate"
 	auth      = "https://translate.kagi.com/api/auth"
 	quota     = "https://translate.kagi.com/api/quota"
-	UserAgent = "Mozilla/5.0 (X11; Linux x86_64; rv:151.0) Gecko/20100101 Firefox/151.0 go-kagi-translate"
+
+	// Most common user agent string
+	UserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.10 Safari/605.1.1"
 )
 
 type Kagi struct {
