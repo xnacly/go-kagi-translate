@@ -16,21 +16,29 @@ const (
 
 type Kagi struct {
 	ctx     context.Context
-	client  http.Client
+	client  *http.Client
 	token   string
 	session string
 }
 
-func New() Kagi { return Kagi{} }
-func (kt Kagi) WithCtx(ctx context.Context) Kagi {
+func New() *Kagi {
+	return &Kagi{
+		ctx:    context.Background(),
+		client: http.DefaultClient,
+	}
+}
+
+func (kt *Kagi) WithCtx(ctx context.Context) *Kagi {
 	kt.ctx = ctx
 	return kt
 }
-func (kt Kagi) WithClient(client http.Client) Kagi {
+
+func (kt *Kagi) WithClient(client *http.Client) *Kagi {
 	kt.client = client
 	return kt
 }
-func (kt Kagi) WithToken(token string) Kagi {
+
+func (kt *Kagi) WithToken(token string) *Kagi {
 	kt.token = token
 	return kt
 }

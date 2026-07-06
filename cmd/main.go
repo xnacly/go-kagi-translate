@@ -8,17 +8,22 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 
 	gokagitranslate "github.com/xnacly/go-kagi-translate"
 )
 
 func die(err error) {
-	slog.Error("kagi-translate", "err", err)
-	panic(err.Error())
+	slog.Error("failed", "err", err)
+	os.Exit(1)
 }
 
 func main() {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
 	var (
 		from    = ""
 		to      = ""
@@ -31,11 +36,10 @@ func main() {
 
 	if verbose {
 		slog.SetLogLoggerLevel(slog.LevelDebug)
-		slog.Debug("kagi-translate:debug", "msg", "parsed arguments",
-			"from", from,
-			"to", to,
-			"verbose", verbose)
 	}
+	slog.Debug("parsed arguments",
+		"from", from,
+		"to", to)
 
 	if len(from) == 0 {
 		die(errors.New("no -from defined"))
@@ -45,28 +49,23 @@ func main() {
 		die(errors.New("nothing to translate"))
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
 	token, ok := os.LookupEnv("KAGI_TOKEN")
 	if !ok {
 		die(errors.New("no KAGI_TOKEN env variable set"))
 	}
-	if verbose {
-		slog.Debug("kagi-translate:debug", "msg", "found KAGI_TOKEN env variabel")
-	}
+	slog.Debug("found KAGI_TOKEN env variable")
 
-	client := gokagitranslate.New().WithClient(http.Client{}).WithCtx(ctx).WithToken(token)
-	slog.Debug("kagi-translate:debug", "msg", "created kagi translate client")
+	client := gokagitranslate.New().WithClient(&http.Client{}).WithCtx(ctx).WithToken(token)
+	slog.Debug("created kagi translate client")
 	if _, err := client.Auth(); err != nil {
 		die(err)
 	}
-	slog.Debug("kagi-translate:debug", "msg", "authenticated to kagi translate")
+	slog.Debug("authenticated to kagi translate")
 
 	output, err := client.Translate(from, to, strings.Join(flag.Args(), " "))
 	if err != nil {
 		die(err)
 	}
-	slog.Debug("kagi-translate:debug", "msg", "translated", "from", from, "to", to)
+	slog.Debug("translated", "from", from, "to", to)
 	fmt.Println(output)
 }

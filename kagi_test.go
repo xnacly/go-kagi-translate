@@ -7,7 +7,7 @@ import (
 
 func TestBuilder(t *testing.T) {
 	_ = New().
-		WithClient(http.Client{}).
+		WithClient(&http.Client{}).
 		WithCtx(t.Context()).
 		WithToken("12345")
 }

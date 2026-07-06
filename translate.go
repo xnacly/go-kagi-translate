@@ -18,11 +18,11 @@ type TranslateParams struct {
 	Enable_language_features bool
 }
 
-func (kt Kagi) TranslateWithParams(params TranslateParams) (TranslateResponse, error) {
+func (kt *Kagi) TranslateWithParams(params TranslateParams) (TranslateResponse, error) {
 	return TranslateResponse{}, nil
 }
 
-func (kt Kagi) Translate(from, to, text string) (TranslateResponse, error) {
+func (kt *Kagi) Translate(from, to, text string) (TranslateResponse, error) {
 	params := TranslateParams{
 		Text:                     text,
 		From:                     from,
