@@ -11,7 +11,7 @@ func TestQuota(t *testing.T) {
 		t.Skip("missing KAGI_TOKEN env var")
 	}
 
-	client := New().WithToken(tok)
+	client := New(tok)
 	quota, err := client.Quota(t.Context())
 	if err != nil {
 		t.Error("Failed to fetch quota: ", err)

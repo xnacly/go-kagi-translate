@@ -16,7 +16,9 @@ func (kt *Kagi) Quota(ctx context.Context) (QuotaResponse, error) {
 		return QuotaResponse{}, err
 	}
 
-	kt.prepReq(req)
+	if err := kt.prepReq(req); err != nil {
+		return QuotaResponse{}, err
+	}
 
 	res, err := kt.client.Do(req)
 	if err != nil {

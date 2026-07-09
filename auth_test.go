@@ -11,8 +11,7 @@ func TestAuth(t *testing.T) {
 		t.Skip("missing KAGI_TOKEN env var")
 	}
 
-	client := New().
-		WithToken(tok)
+	client := New(tok)
 
 	err := client.auth(t.Context())
 	if err != nil {

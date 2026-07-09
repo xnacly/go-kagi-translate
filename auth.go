@@ -18,7 +18,9 @@ func (kt *Kagi) auth(ctx context.Context) error {
 		return err
 	}
 
-	kt.prepReq(req)
+	if err := kt.prepReq(req); err != nil {
+		return err
+	}
 
 	res, err := kt.client.Do(req)
 	if err != nil {

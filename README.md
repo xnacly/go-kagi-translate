@@ -13,7 +13,7 @@ Features:
 - translate text programmatically via `gokagitranslate.(*Kagi).Translate(ctx, from, to, text string)`
 - detect the language of a text with `gokagitranslate.(*Kagi).Detect(ctx, text string)`
 - inspect quota usage programmatically via `gokagitranslate.(*Kagi).Quota(ctx)`
-- configurable API client via `gokagitranslate.New().{WithClient,WithToken}`
+- configurable API client via `gokagitranslate.New(token).{WithClient,WithUserAgent}`
 - uncomplicated opinionated oneshot translation via `gokagitranslate.OneShot(ctx, token, from, to, text string)`
 - netiquette adhering with both project name and contact email in user agent, dont @ me kagi team :)
 - cli tool for experimenting with all features the api provides (translation, quotas, language detection)

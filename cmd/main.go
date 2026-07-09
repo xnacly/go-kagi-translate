@@ -170,7 +170,7 @@ func newClient() (*gokagitranslate.Kagi, error) {
 		return nil, errors.New("no KAGI_TOKEN env variable set")
 	}
 	slog.Debug("found KAGI_TOKEN env variable")
-	return gokagitranslate.New().WithClient(&http.Client{}).WithToken(token), nil
+	return gokagitranslate.New(token).WithClient(&http.Client{}), nil
 }
 
 func printJSON(v any) {
