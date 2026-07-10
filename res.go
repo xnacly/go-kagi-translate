@@ -4,16 +4,15 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"reflect"
 	"time"
 )
 
+// TranslateResponse is returned by Kagi's translate endpoint.
 type TranslateResponse struct {
-	Translation      string `json:"translation"`
-	DetectedLanguage struct {
-		Iso   string `json:"iso"`
-		Label string `json:"label"`
-	} `json:"detected_language"`
-	Definition struct {
+	Translation      string   `json:"translation"`
+	DetectedLanguage Language `json:"detected_language"`
+	Definition       struct {
 		Word           string `json:"word"`
 		PrimaryMeaning struct {
 			Definition            string   `json:"definition"`
@@ -49,13 +48,19 @@ type TranslateResponse struct {
 	} `json:"definition"`
 }
 
+// DetectResponse is returned by Kagi's detect endpoint.
 type DetectResponse struct {
-	DetectedLanguage struct {
-		Iso   string `json:"iso"`
-		Label string `json:"label"`
-	} `json:"detected_language"`
+	DetectedLanguage Language   `json:"detected_language"`
+	Alternatives     []Language `json:"alternatives,omitempty"`
 }
 
+// Language identifies a detected or translated language.
+type Language struct {
+	Iso   string `json:"iso"`
+	Label string `json:"label"`
+}
+
+// AuthResponse is returned by Kagi's auth endpoint.
 type AuthResponse struct {
 	Token              string    `json:"token"`
 	ID                 string    `json:"id"`
@@ -71,12 +76,14 @@ type AuthResponse struct {
 	Platform           string    `json:"platform"`
 }
 
+// QuotaResponse is returned by Kagi's quota endpoint.
 type QuotaResponse struct {
 	Translate Quota `json:"translate"`
 	Proofread Quota `json:"proofread"`
 	Document  Quota `json:"document"`
 }
 
+// Quota describes usage for one Kagi Translate quota bucket.
 type Quota struct {
 	Kind        string    `json:"kind"`
 	Used        int       `json:"used"`
@@ -89,18 +96,17 @@ type Quota struct {
 	ActiveJobID *string   `json:"activeJobId,omitempty"`
 }
 
-var ErrNullResponse = errors.New("auth failed: empty session response")
-var ErrNotImplemented = errors.New("not implemented")
+var ErrEmptyResponse = errors.New("empty response")
 
-func decodeResponse[T comparable](body io.Reader) (T, error) {
+func decodeResponse[T any](body io.Reader) (T, error) {
 	d := json.NewDecoder(body)
 	var out T
 	var e T
 	if err := d.Decode(&out); err != nil {
 		return out, err
 	}
-	if out == e {
-		return out, ErrNullResponse
+	if reflect.DeepEqual(out, e) {
+		return out, ErrEmptyResponse
 	}
 
 	return out, nil

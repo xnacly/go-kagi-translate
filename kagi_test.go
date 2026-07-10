@@ -48,3 +48,21 @@ func TestPrepReqUsesConfiguredUserAgent(t *testing.T) {
 		t.Fatalf("got user agent %q, want %q", got, userAgent)
 	}
 }
+
+func TestPrepReqDoesNotSetJSONHeaders(t *testing.T) {
+	req, err := http.NewRequest("GET", auth, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := New("12345").prepReq(req); err != nil {
+		t.Fatal(err)
+	}
+
+	if got := req.Header.Get("Content-Type"); got != "" {
+		t.Fatalf("got content type %q, want empty", got)
+	}
+	if got := req.Header.Get("X-Signal"); got != "" {
+		t.Fatalf("got X-Signal %q, want empty", got)
+	}
+}
