@@ -30,6 +30,7 @@ func rootFlagSet() *flag.FlagSet {
 
 Commands:
   translate    translate text
+  detect       detect source language
   quota        show translate quota usage
 
 Run "%s <command> -h" for command flags.
@@ -59,6 +60,8 @@ func main() {
 	switch commandArgs[0] {
 	case "translate":
 		runTranslate(ctx, commandArgs[1:])
+	case "detect":
+		runDetect(ctx, commandArgs[1:])
 	case "quota":
 		runQuota(ctx, commandArgs[1:])
 	case "help":
@@ -123,6 +126,54 @@ Flags:
 	fmt.Println(output.Translation)
 }
 
+func runDetect(ctx context.Context, args []string) {
+	var (
+		verbose         = false
+		asJSON          = false
+		recentLanguages = ""
+	)
+	flags := flag.NewFlagSet("detect", flag.ExitOnError)
+	flags.StringVar(&recentLanguages, "recent", "", "comma-separated recent language codes")
+	flags.BoolVar(&asJSON, "json", false, "print full response as JSON")
+	flags.BoolVar(&verbose, "v", false, "verbose logging")
+	flags.Usage = func() {
+		fmt.Fprintf(flags.Output(), `Usage:
+  %s detect [flags] <text...>
+
+Flags:
+`, os.Args[0])
+		flags.PrintDefaults()
+	}
+	flags.Parse(args)
+
+	if verbose {
+		slog.SetLogLoggerLevel(slog.LevelDebug)
+	}
+	if len(flags.Args()) == 0 {
+		die(errors.New("nothing to detect"))
+	}
+
+	client, err := newClient()
+	if err != nil {
+		die(err)
+	}
+	slog.Debug("created kagi translate client")
+	params := gokagitranslate.DetectParams{
+		Text:                strings.Join(flags.Args(), " "),
+		IncludeAlternatives: true,
+		RecentLanguages:     splitCSV(recentLanguages),
+	}
+	output, err := client.DetectWithParams(ctx, params)
+	if err != nil {
+		die(err)
+	}
+	if asJSON {
+		printJSON(output)
+		return
+	}
+	fmt.Println(output.DetectedLanguage.Iso)
+}
+
 func runQuota(ctx context.Context, args []string) {
 	var (
 		verbose = false
@@ -171,6 +222,21 @@ func newClient() (*gokagitranslate.Kagi, error) {
 	}
 	slog.Debug("found KAGI_TOKEN env variable")
 	return gokagitranslate.New(token).WithClient(&http.Client{}), nil
+}
+
+func splitCSV(value string) []string {
+	if value == "" {
+		return nil
+	}
+	parts := strings.Split(value, ",")
+	out := make([]string, 0, len(parts))
+	for _, part := range parts {
+		part = strings.TrimSpace(part)
+		if part != "" {
+			out = append(out, part)
+		}
+	}
+	return out
 }
 
 func printJSON(v any) {
