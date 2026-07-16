@@ -24,11 +24,12 @@ type TranslateParams struct {
 
 // TranslateWithParams translates text using the provided low-level options.
 func (kt *Kagi) TranslateWithParams(ctx context.Context, params TranslateParams) (TranslateResponse, error) {
-	if err := kt.auth(ctx); err != nil {
+	session, err := kt.auth(ctx)
+	if err != nil {
 		return TranslateResponse{}, err
 	}
 	if params.SessionToken == "" {
-		params.SessionToken = kt.session.Token
+		params.SessionToken = session.Token
 	}
 
 	return decodeJSON[TranslateResponse](ctx, kt, "POST", translate, "translate", params)
@@ -48,7 +49,6 @@ func (kt *Kagi) Translate(ctx context.Context, from, to, text string) (Translate
 		TranslationStyle:       "natural",
 		Context:                "",
 		Model:                  "standard",
-		SessionToken:           kt.session.Token,
 		DictionaryLanguage:     to,
 		UseDefinitionContext:   false,
 		EnableLanguageFeatures: false,

@@ -6,9 +6,10 @@ import (
 )
 
 func TestBuilder(t *testing.T) {
-	_ = New("12345").
-		WithClient(&http.Client{}).
-		WithUserAgent("custom-user-agent")
+	_ = New("12345",
+		WithClient(&http.Client{}),
+		WithUserAgent("custom-user-agent"),
+	)
 }
 
 func TestNewSetsToken(t *testing.T) {
@@ -24,9 +25,7 @@ func TestPrepReqUsesDefaultUserAgent(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := New("12345").prepReq(req); err != nil {
-		t.Fatal(err)
-	}
+	New("12345").prepReq(req)
 
 	if got := req.Header.Get("User-Agent"); got != DefaultUserAgent {
 		t.Fatalf("got user agent %q, want %q", got, DefaultUserAgent)
@@ -40,9 +39,7 @@ func TestPrepReqUsesConfiguredUserAgent(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := New("12345").WithUserAgent(userAgent).prepReq(req); err != nil {
-		t.Fatal(err)
-	}
+	New("12345", WithUserAgent(userAgent)).prepReq(req)
 
 	if got := req.Header.Get("User-Agent"); got != userAgent {
 		t.Fatalf("got user agent %q, want %q", got, userAgent)
@@ -55,9 +52,7 @@ func TestPrepReqDoesNotSetJSONHeaders(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := New("12345").prepReq(req); err != nil {
-		t.Fatal(err)
-	}
+	New("12345").prepReq(req)
 
 	if got := req.Header.Get("Content-Type"); got != "" {
 		t.Fatalf("got content type %q, want empty", got)

@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"strings"
+	"sync/atomic"
 	"testing"
-	"time"
 )
 
 func TestDetectPostsReferencePayload(t *testing.T) {
@@ -39,7 +39,7 @@ func TestDetectPostsReferencePayload(t *testing.T) {
 		}),
 	}
 
-	res, err := New("kagi-session-token").WithClient(client).Detect(t.Context(), "skibid")
+	res, err := New("kagi-session-token", WithClient(client)).Detect(t.Context(), "skibid")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -67,7 +67,7 @@ func TestDetectWithParamsUsesProvidedSessionToken(t *testing.T) {
 		}),
 	}
 
-	_, err := New("kagi-session-token").WithClient(client).DetectWithParams(t.Context(), DetectParams{
+	_, err := New("kagi-session-token", WithClient(client)).DetectWithParams(t.Context(), DetectParams{
 		Text:                "hola",
 		IncludeAlternatives: true,
 		RecentLanguages:     []string{"es", "en"},
@@ -88,7 +88,7 @@ func TestDetectFailsOnNonSuccessStatus(t *testing.T) {
 		}),
 	}
 
-	_, err := New("kagi-session-token").WithClient(client).Detect(t.Context(), "hello")
+	_, err := New("kagi-session-token", WithClient(client)).Detect(t.Context(), "hello")
 	if err == nil || !strings.Contains(err.Error(), "detect failed: 403 Forbidden") {
 		t.Fatalf("got error %v, want detect failed status", err)
 	}
@@ -117,25 +117,30 @@ func TestDetectDecodesAlternateResponseShapes(t *testing.T) {
 	}
 }
 
-func TestDetectSkipsAuthWhenSessionIsFresh(t *testing.T) {
+func TestDetectReusesCachedAuth(t *testing.T) {
+	var authRequests atomic.Int64
 	client := &http.Client{
 		Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
 			if req.URL.String() == auth {
-				t.Fatal("unexpected auth request")
+				authRequests.Add(1)
+				return jsonResponse(http.StatusOK, `{"token":"fresh-token","expiresAt":"2030-01-01T00:00:00Z"}`), nil
 			}
 			return jsonResponse(http.StatusOK, `{"detected_language":{"iso":"en","label":"English"}}`), nil
 		}),
 	}
-	kt := New("kagi-session-token").WithClient(client)
-	kt.session.Token = "fresh-token"
-	kt.session.ExpiresAt = time.Now().Add(time.Hour)
+	kt := New("kagi-session-token", WithClient(client))
 
-	res, err := kt.Detect(t.Context(), "hello")
-	if err != nil {
-		t.Fatal(err)
+	for range 2 {
+		res, err := kt.Detect(t.Context(), "hello")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if res.DetectedLanguage.Iso != "en" {
+			t.Fatalf("got language %q, want en", res.DetectedLanguage.Iso)
+		}
 	}
-	if res.DetectedLanguage.Iso != "en" {
-		t.Fatalf("got language %q, want en", res.DetectedLanguage.Iso)
+	if got := authRequests.Load(); got != 1 {
+		t.Fatalf("got %d auth requests, want 1", got)
 	}
 }
 

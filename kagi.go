@@ -3,11 +3,7 @@ package gokagitranslate
 import (
 	"context"
 	"net/http"
-	"net/url"
-)
-
-var (
-	kagiBase, _ = url.Parse("https://kagi.com")
+	"sync/atomic"
 )
 
 const (
@@ -26,8 +22,11 @@ type Kagi struct {
 	client    *http.Client
 	token     string
 	userAgent string
-	session   AuthResponse
+	authCache atomic.Pointer[AuthResponse]
 }
+
+// Option configures a Kagi client at construction time.
+type Option func(*Kagi)
 
 // OneShot translates text directly using token for authentication.
 func OneShot(ctx context.Context, token, from, to, text string) (string, error) {
@@ -39,27 +38,33 @@ func OneShot(ctx context.Context, token, from, to, text string) (string, error) 
 }
 
 // New creates a Kagi client authenticated with a Kagi session token.
-//
-// Using the default http.Client and DefaultUserAgent
-func New(token string) *Kagi {
-	return &Kagi{
+func New(token string, options ...Option) *Kagi {
+	kt := &Kagi{
 		client:    &http.Client{},
 		token:     token,
 		userAgent: DefaultUserAgent,
 	}
+	for _, option := range options {
+		option(kt)
+	}
+	return kt
 }
 
 // WithClient configures the HTTP client used for requests.
-func (kt *Kagi) WithClient(client *http.Client) *Kagi {
-	kt.client = client
-	return kt
+func WithClient(client *http.Client) Option {
+	return func(kt *Kagi) {
+		if client != nil {
+			kt.client = client
+		}
+	}
 }
 
 // WithUserAgent configures the User-Agent header used for requests.
-func (kt *Kagi) WithUserAgent(userAgent string) *Kagi {
-	if userAgent == "" {
-		userAgent = DefaultUserAgent
+func WithUserAgent(userAgent string) Option {
+	return func(kt *Kagi) {
+		if userAgent == "" {
+			userAgent = DefaultUserAgent
+		}
+		kt.userAgent = userAgent
 	}
-	kt.userAgent = userAgent
-	return kt
 }

@@ -16,11 +16,12 @@ type DetectParams struct {
 
 // DetectWithParams detects the language of text using the provided options.
 func (kt *Kagi) DetectWithParams(ctx context.Context, params DetectParams) (DetectResponse, error) {
-	if err := kt.auth(ctx); err != nil {
+	session, err := kt.auth(ctx)
+	if err != nil {
 		return DetectResponse{}, err
 	}
 	if params.SessionToken == "" {
-		params.SessionToken = kt.session.Token
+		params.SessionToken = session.Token
 	}
 
 	res, err := kt.doJSON(ctx, "POST", detect, "detect", params)
@@ -37,7 +38,6 @@ func (kt *Kagi) Detect(ctx context.Context, text string) (DetectResponse, error)
 	params := DetectParams{
 		Text:                text,
 		IncludeAlternatives: true,
-		SessionToken:        kt.session.Token,
 	}
 
 	return kt.DetectWithParams(ctx, params)

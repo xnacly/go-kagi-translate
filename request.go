@@ -26,9 +26,7 @@ func (kt *Kagi) doJSON(ctx context.Context, method, url, failure string, payload
 	if err != nil {
 		return nil, err
 	}
-	if err := kt.prepReq(req); err != nil {
-		return nil, err
-	}
+	kt.prepReq(req)
 	if payload != nil {
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Origin", "https://translate.kagi.com")
